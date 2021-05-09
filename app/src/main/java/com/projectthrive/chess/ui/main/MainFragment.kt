@@ -35,6 +35,7 @@ class MainFragment : Fragment() {
                     layoutInflater.inflate(R.layout.square_view, mainBoard, false) as ImageView
                 if (pieces.containsKey(Position(i,j))) {
                     squareView.setImageDrawable(getPiece(pieceType = pieces[Position(i,j)]!!.pieceType, color = pieces[Position(i,j)]!!.color))
+                    squareView.background = getColoredSquare(i, j)
                 } else {
                     squareView.setImageDrawable(getColoredSquare(i, j))
                 }
@@ -56,34 +57,34 @@ class MainFragment : Fragment() {
     private fun getPiece(pieceType: PieceType,color: PieceColor) : Drawable? {
         return when (pieceType) {
             PieceType.ROOK -> if (color == PieceColor.BLACK) {
-                context?.getDrawable(R.mipmap.black_castle)
+                context?.getDrawable(R.mipmap.b_rook_png_128px)
             } else {
-                context?.getDrawable(R.mipmap.white_castle)
+                context?.getDrawable(R.mipmap.w_rook_png_128px)
             }
             PieceType.KNIGHT -> if (color == PieceColor.BLACK) {
-                context?.getDrawable(R.mipmap.black_knight)
+                context?.getDrawable(R.mipmap.b_knight_png_128px)
             } else {
-                context?.getDrawable(R.mipmap.white_knight)
+                context?.getDrawable(R.mipmap.w_knight_png_128px)
             }
             PieceType.BISHOP -> if (color == PieceColor.BLACK) {
-                context?.getDrawable(R.mipmap.black_bishop)
+                context?.getDrawable(R.mipmap.b_bishop_png_128px)
             } else {
-                context?.getDrawable(R.mipmap.white_bishop)
+                context?.getDrawable(R.mipmap.w_bishop_png_128px)
             }
             PieceType.KING -> if (color == PieceColor.BLACK) {
-                context?.getDrawable(R.mipmap.black_king)
+                context?.getDrawable(R.mipmap.b_king_png_128px)
             } else {
-                context?.getDrawable(R.mipmap.white_king)
+                context?.getDrawable(R.mipmap.w_king_png_128px)
             }
             PieceType.QUEEN -> if (color == PieceColor.BLACK) {
-                context?.getDrawable(R.mipmap.black_queen)
+                context?.getDrawable(R.mipmap.b_queen_png_128px)
             } else {
-                context?.getDrawable(R.mipmap.white_queen)
+                context?.getDrawable(R.mipmap.w_queen_png_128px)
             }
             PieceType.PAWN -> if (color == PieceColor.BLACK) {
-                context?.getDrawable(R.mipmap.black_pawn)
+                context?.getDrawable(R.mipmap.b_pawn_png_128px)
             } else {
-                context?.getDrawable(R.mipmap.white_pawn)
+                context?.getDrawable(R.mipmap.w_pawn_png_128px)
             }
         }
     }

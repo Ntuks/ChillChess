@@ -9,6 +9,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.GridLayout
 import android.widget.ImageView
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.observe
 import com.projectthrive.chess.R
 import com.projectthrive.chess.ui.main.GameModel.Companion.piecesInGame
 
@@ -20,28 +22,33 @@ class MainFragment : Fragment() {
 
     private lateinit var viewModel: GameModel
 
+    private val positionToViews = mutableMapOf<Position, ImageView>()
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View {
         val rootView = inflater.inflate(R.layout.main_fragment, container, false)
         val mainBoard = rootView.findViewById<GridLayout>(R.id.main_board)
 
         viewModel = GameModel()
-        val pieces = viewModel.initialPiecesSetup()
-        piecesInGame.postValue(pieces)
+
+        piecesInGame.observe(this) { it ->
+            for ((position, square)  in positionToViews) {
+                val pieceSprite = it[position]?.let(this::getPiece)
+                square.setImageDrawable(pieceSprite)
+            }
+        }
 
         for (i in 0..7) {
             for (j in 0..7) {
                 val squareView =
                     layoutInflater.inflate(R.layout.square_view, mainBoard, false) as ImageView
-                if (pieces.containsKey(Position(i,j))) {
-                    squareView.setImageDrawable(getPiece(pieceType = pieces[Position(i,j)]!!.pieceType, color = pieces[Position(i,j)]!!.color))
-                    squareView.background = getColoredSquare(i, j)
-                } else {
-                    squareView.setImageDrawable(getColoredSquare(i, j))
-                }
+                squareView.background = getColoredSquare(i, j)
+                positionToViews[Position(i,j)] = squareView
                 mainBoard.addView(squareView)
             }
         }
+
+        piecesInGame.postValue(viewModel.initialPiecesSetup())
 
         return rootView
     }
@@ -54,8 +61,9 @@ class MainFragment : Fragment() {
         }
     }
 
-    private fun getPiece(pieceType: PieceType,color: PieceColor) : Drawable? {
-        return when (pieceType) {
+    private fun getPiece(piece: Piece) : Drawable? {
+        val color = piece.color
+        return when (piece.pieceType) {
             PieceType.ROOK -> if (color == PieceColor.BLACK) {
                 context?.getDrawable(R.mipmap.b_rook_png_128px)
             } else {
@@ -92,8 +100,6 @@ class MainFragment : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         viewModel = ViewModelProvider(this).get(GameModel::class.java)
-
-
     }
 
 }

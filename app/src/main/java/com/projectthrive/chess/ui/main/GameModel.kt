@@ -4,7 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 
-class GameModel(): ViewModel() {
+class GameModel: ViewModel() {
 
     companion object {
         val piecesInGame = MutableLiveData<Map<Position, Piece>>()
@@ -60,13 +60,17 @@ class GameModel(): ViewModel() {
  */
 data class Board(
         val highlightedPositions: List<Position>,
-        val piecesInGame: Map<Position, Piece>?,
+        val piecesInGame: Map<Position, Piece>,
         val piecesOutOfTheGame: Set<Piece>
-)
+) {
+
+    fun pieceAt(p: Position): Piece? = piecesInGame[p]
+
+}
 
 /**
  * Positions on a chess board.
- * The bottom left corner will be x = 0 and y = 0
+ * The top left corner will be x = 0 and y = 0
  */
 data class Position(val x: Int, val y: Int)
 

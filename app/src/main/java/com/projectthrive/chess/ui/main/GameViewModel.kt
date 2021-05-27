@@ -1,14 +1,11 @@
 package com.projectthrive.chess.ui.main
 
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 
-class GameModel: ViewModel() {
+class GameViewModel: ViewModel() {
 
-    companion object {
-        val piecesInGame = MutableLiveData<Map<Position, Piece>>()
-    }
+    val boardViewModel = MutableLiveData<BoardViewModel>()
 
     fun initialPiecesSetup(): Map<Position, Piece> {
         return mutableMapOf(
@@ -58,15 +55,10 @@ class GameModel: ViewModel() {
  * This is a chess board.
  * It represents a 8x8 square board.
  */
-data class Board(
-        val highlightedPositions: List<Position>,
-        val piecesInGame: Map<Position, Piece>,
-        val piecesOutOfTheGame: Set<Piece>
-) {
-
-    fun pieceAt(p: Position): Piece? = piecesInGame[p]
-
-}
+data class BoardViewModel(
+    val highlightedPositions: List<Position> = mutableListOf(),
+    val pieces: Map<Position, Piece> = mutableMapOf()
+)
 
 /**
  * Positions on a chess board.

@@ -3,52 +3,25 @@ package com.projectthrive.chess.ui.main
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 
-class GameViewModel: ViewModel() {
+class GameViewModel : ViewModel() {
 
-    val boardViewModel = MutableLiveData<BoardViewModel>()
+    private val gameEngine: GameEngine
+    val boardLiveData = MutableLiveData<BoardViewModel>()
 
-    fun initialPiecesSetup(): Map<Position, Piece> {
-        return mutableMapOf(
-            // WHITE BACK PIECES
-            Pair(Position(0,0), Piece(PieceType.ROOK, PieceColor.WHITE)),
-            Pair(Position(0,1), Piece(PieceType.KNIGHT, PieceColor.WHITE)),
-            Pair(Position(0,2), Piece(PieceType.BISHOP, PieceColor.WHITE)),
-            Pair(Position(0,3), Piece(PieceType.KING, PieceColor.WHITE)),
-            Pair(Position(0,4), Piece(PieceType.QUEEN, PieceColor.WHITE)),
-            Pair(Position(0,5), Piece(PieceType.BISHOP, PieceColor.WHITE)),
-            Pair(Position(0,6), Piece(PieceType.KNIGHT, PieceColor.WHITE)),
-            Pair(Position(0,7), Piece(PieceType.ROOK, PieceColor.WHITE)),
-            // WHITE PAWNS
-            Pair(Position(1,0), Piece(PieceType.PAWN, PieceColor.WHITE)),
-            Pair(Position(1,1), Piece(PieceType.PAWN, PieceColor.WHITE)),
-            Pair(Position(1,2), Piece(PieceType.PAWN, PieceColor.WHITE)),
-            Pair(Position(1,3), Piece(PieceType.PAWN, PieceColor.WHITE)),
-            Pair(Position(1,4), Piece(PieceType.PAWN, PieceColor.WHITE)),
-            Pair(Position(1,5), Piece(PieceType.PAWN, PieceColor.WHITE)),
-            Pair(Position(1,6), Piece(PieceType.PAWN, PieceColor.WHITE)),
-            Pair(Position(1,7), Piece(PieceType.PAWN, PieceColor.WHITE)),
-
-            // BLACK BACK PIECES
-            Pair(Position(7,0), Piece(PieceType.ROOK, PieceColor.BLACK)),
-            Pair(Position(7,1), Piece(PieceType.KNIGHT, PieceColor.BLACK)),
-            Pair(Position(7,2), Piece(PieceType.BISHOP, PieceColor.BLACK)),
-            Pair(Position(7,3), Piece(PieceType.KING, PieceColor.BLACK)),
-            Pair(Position(7,4), Piece(PieceType.QUEEN, PieceColor.BLACK)),
-            Pair(Position(7,5), Piece(PieceType.BISHOP, PieceColor.BLACK)),
-            Pair(Position(7,6), Piece(PieceType.KNIGHT, PieceColor.BLACK)),
-            Pair(Position(7,7), Piece(PieceType.ROOK, PieceColor.BLACK)),
-            // BLACK PAWNS
-            Pair(Position(6,0), Piece(PieceType.PAWN, PieceColor.BLACK)),
-            Pair(Position(6,1), Piece(PieceType.PAWN, PieceColor.BLACK)),
-            Pair(Position(6,2), Piece(PieceType.PAWN, PieceColor.BLACK)),
-            Pair(Position(6,3), Piece(PieceType.PAWN, PieceColor.BLACK)),
-            Pair(Position(6,4), Piece(PieceType.PAWN, PieceColor.BLACK)),
-            Pair(Position(6,5), Piece(PieceType.PAWN, PieceColor.BLACK)),
-            Pair(Position(6,6), Piece(PieceType.PAWN, PieceColor.BLACK)),
-            Pair(Position(6,7), Piece(PieceType.PAWN, PieceColor.BLACK))
+    init {
+        gameEngine = GameEngine()
+        boardLiveData.postValue(
+            BoardViewModel(pieces = gameEngine.initialPieces())
         )
     }
 
+    fun onPieceClicked(position: Position) {
+        boardLiveData.value?.let {
+            boardLiveData.postValue(
+                it.copy(highlightedPositions = gameEngine.getHighlightedPositions(position))
+            )
+        }
+    }
 }
 
 /**
@@ -57,7 +30,7 @@ class GameViewModel: ViewModel() {
  */
 data class BoardViewModel(
     val highlightedPositions: List<Position> = mutableListOf(),
-    val pieces: Map<Position, Piece> = mutableMapOf()
+    val pieces: Map<Position, PieceViewModel> = mutableMapOf()
 )
 
 /**
@@ -66,12 +39,10 @@ data class BoardViewModel(
  */
 data class Position(val x: Int, val y: Int)
 
-data class Piece(
-        val pieceType: PieceType,
-        val color: PieceColor
+data class PieceViewModel(
+    val pieceType: PieceType,
+    val color: PieceColor
 )
-
-
 
 enum class PieceType {
     PAWN,

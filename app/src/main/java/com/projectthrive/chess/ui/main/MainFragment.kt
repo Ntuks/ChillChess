@@ -1,15 +1,14 @@
 package com.projectthrive.chess.ui.main
 
 import android.graphics.drawable.Drawable
-import androidx.lifecycle.ViewModelProvider
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.GridLayout
 import android.widget.ImageView
-import androidx.lifecycle.Observer
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.observe
 import com.projectthrive.chess.R
 
@@ -19,7 +18,7 @@ class MainFragment : Fragment() {
         fun newInstance() = MainFragment()
     }
 
-    private lateinit var viewModel: GameViewModel
+    private val gameViewModel: GameViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -28,14 +27,9 @@ class MainFragment : Fragment() {
         val rootView = inflater.inflate(R.layout.main_fragment, container, false)
         val mainBoard = rootView.findViewById<GridLayout>(R.id.main_board)
 
-        viewModel = GameViewModel()
-        viewModel.boardViewModel.observe(this) { boardViewModel ->
+        gameViewModel.boardLiveData.observe(this) { boardViewModel ->
             handleViewModelUpdates(mainBoard, boardViewModel)
         }
-
-        viewModel.boardViewModel.postValue(
-            BoardViewModel(pieces = viewModel.initialPiecesSetup())
-        )
 
         return rootView
     }
@@ -45,22 +39,30 @@ class MainFragment : Fragment() {
         boardViewModel: BoardViewModel
     ) {
         mainBoard.removeAllViews()
-        val positionToViews = mutableMapOf<Position, ImageView>()
+        val tileMap = mutableMapOf<Position, ImageView>()
 
         for (i in 0..7) {
             for (j in 0..7) {
                 val tile = getTileView(mainBoard)
+                val position = Position(i, j)
+
                 tile.background = getColoredTile(i, j)
-                positionToViews[Position(i, j)] = tile
+                tileMap[position] = tile
                 mainBoard.addView(tile)
+
+                tile.setOnClickListener { gameViewModel.onPieceClicked(position) }
             }
         }
 
         boardViewModel.pieces.let {
-            for ((position, square) in positionToViews) {
+            for ((position, tile) in tileMap) {
                 val pieceSprite = it[position]?.let(this::getPieceSprite)
-                square.setImageDrawable(pieceSprite)
+                tile.setImageDrawable(pieceSprite)
             }
+        }
+
+        boardViewModel.highlightedPositions.forEach {
+            tileMap[it]?.background = context?.getDrawable(R.drawable.temp_highlight_square)
         }
     }
 
@@ -75,9 +77,9 @@ class MainFragment : Fragment() {
         }
     }
 
-    private fun getPieceSprite(piece: Piece): Drawable? {
-        val color = piece.color
-        return when (piece.pieceType) {
+    private fun getPieceSprite(pieceViewModel: PieceViewModel): Drawable? {
+        val color = pieceViewModel.color
+        return when (pieceViewModel.pieceType) {
             PieceType.ROOK -> if (color == PieceColor.BLACK) {
                 context?.getDrawable(R.drawable.b_rook_png_128px)
             } else {
@@ -109,11 +111,6 @@ class MainFragment : Fragment() {
                 context?.getDrawable(R.drawable.w_pawn_png_128px)
             }
         }
-    }
-
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-        viewModel = ViewModelProvider(this).get(GameViewModel::class.java)
     }
 
 }

@@ -1,18 +1,16 @@
 package com.projectthrive.chess.ui.main
 
 import android.graphics.drawable.Drawable
-import androidx.lifecycle.ViewModelProvider
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.GridLayout
 import android.widget.ImageView
-import androidx.lifecycle.LifecycleOwner
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.observe
 import com.projectthrive.chess.R
-import com.projectthrive.chess.ui.main.GameModel.Companion.piecesInGame
 
 class MainFragment : Fragment() {
 
@@ -20,40 +18,58 @@ class MainFragment : Fragment() {
         fun newInstance() = MainFragment()
     }
 
-    private lateinit var viewModel: GameModel
+    private val gameViewModel: GameViewModel by viewModels()
 
-    private val positionToViews = mutableMapOf<Position, ImageView>()
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View {
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
         val rootView = inflater.inflate(R.layout.main_fragment, container, false)
         val mainBoard = rootView.findViewById<GridLayout>(R.id.main_board)
 
-        viewModel = GameModel()
-
-        piecesInGame.observe(this) { it ->
-            for ((position, square)  in positionToViews) {
-                val pieceSprite = it[position]?.let(this::getPiece)
-                square.setImageDrawable(pieceSprite)
-            }
+        gameViewModel.boardLiveData.observe(this) { boardViewModel ->
+            handleViewModelUpdates(mainBoard, boardViewModel)
         }
-
-        for (i in 0..7) {
-            for (j in 0..7) {
-                val squareView =
-                    layoutInflater.inflate(R.layout.square_view, mainBoard, false) as ImageView
-                squareView.background = getColoredSquare(i, j)
-                positionToViews[Position(i,j)] = squareView
-                mainBoard.addView(squareView)
-            }
-        }
-
-        piecesInGame.postValue(viewModel.initialPiecesSetup())
 
         return rootView
     }
 
-    private fun getColoredSquare(i: Int, j: Int) : Drawable? {
+    private fun handleViewModelUpdates(
+        mainBoard: GridLayout,
+        boardViewModel: BoardViewModel
+    ) {
+        mainBoard.removeAllViews()
+        val tileMap = mutableMapOf<Position, ImageView>()
+
+        for (i in 0..7) {
+            for (j in 0..7) {
+                val tile = getTileView(mainBoard)
+                val position = Position(i, j)
+
+                tile.background = getColoredTile(i, j)
+                tileMap[position] = tile
+                mainBoard.addView(tile)
+
+                tile.setOnClickListener { gameViewModel.onPieceClicked(position) }
+            }
+        }
+
+        boardViewModel.pieces.let {
+            for ((position, tile) in tileMap) {
+                val pieceSprite = it[position]?.let(this::getPieceSprite)
+                tile.setImageDrawable(pieceSprite)
+            }
+        }
+
+        boardViewModel.highlightedPositions.forEach {
+            tileMap[it]?.background = context?.getDrawable(R.drawable.temp_highlight_square)
+        }
+    }
+
+    private fun getTileView(mainBoard: GridLayout?) =
+        layoutInflater.inflate(R.layout.square_view, mainBoard, false) as ImageView
+
+    private fun getColoredTile(i: Int, j: Int): Drawable? {
         return if ((i + j) % 2 == 0) {
             context?.getDrawable(R.drawable.white_square)
         } else {
@@ -61,45 +77,40 @@ class MainFragment : Fragment() {
         }
     }
 
-    private fun getPiece(piece: Piece) : Drawable? {
-        val color = piece.color
-        return when (piece.pieceType) {
+    private fun getPieceSprite(pieceViewModel: PieceViewModel): Drawable? {
+        val color = pieceViewModel.color
+        return when (pieceViewModel.pieceType) {
             PieceType.ROOK -> if (color == PieceColor.BLACK) {
-                context?.getDrawable(R.mipmap.b_rook_png_128px)
+                context?.getDrawable(R.drawable.b_rook_png_128px)
             } else {
-                context?.getDrawable(R.mipmap.w_rook_png_128px)
+                context?.getDrawable(R.drawable.w_rook_png_128px)
             }
             PieceType.KNIGHT -> if (color == PieceColor.BLACK) {
-                context?.getDrawable(R.mipmap.b_knight_png_128px)
+                context?.getDrawable(R.drawable.b_knight_png_128px)
             } else {
-                context?.getDrawable(R.mipmap.w_knight_png_128px)
+                context?.getDrawable(R.drawable.w_knight_png_128px)
             }
             PieceType.BISHOP -> if (color == PieceColor.BLACK) {
-                context?.getDrawable(R.mipmap.b_bishop_png_128px)
+                context?.getDrawable(R.drawable.b_bishop_png_128px)
             } else {
-                context?.getDrawable(R.mipmap.w_bishop_png_128px)
+                context?.getDrawable(R.drawable.w_bishop_png_128px)
             }
             PieceType.KING -> if (color == PieceColor.BLACK) {
-                context?.getDrawable(R.mipmap.b_king_png_128px)
+                context?.getDrawable(R.drawable.b_king_png_128px)
             } else {
-                context?.getDrawable(R.mipmap.w_king_png_128px)
+                context?.getDrawable(R.drawable.w_king_png_128px)
             }
             PieceType.QUEEN -> if (color == PieceColor.BLACK) {
-                context?.getDrawable(R.mipmap.b_queen_png_128px)
+                context?.getDrawable(R.drawable.b_queen_png_128px)
             } else {
-                context?.getDrawable(R.mipmap.w_queen_png_128px)
+                context?.getDrawable(R.drawable.w_queen_png_128px)
             }
             PieceType.PAWN -> if (color == PieceColor.BLACK) {
-                context?.getDrawable(R.mipmap.b_pawn_png_128px)
+                context?.getDrawable(R.drawable.b_pawn_png_128px)
             } else {
-                context?.getDrawable(R.mipmap.w_pawn_png_128px)
+                context?.getDrawable(R.drawable.w_pawn_png_128px)
             }
         }
-    }
-
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-        viewModel = ViewModelProvider(this).get(GameModel::class.java)
     }
 
 }

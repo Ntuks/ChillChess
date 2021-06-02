@@ -6,10 +6,10 @@ import androidx.lifecycle.ViewModel
 class GameViewModel : ViewModel() {
 
     private val gameEngine: GameEngine
+    val boardLiveData = MutableLiveData<BoardViewModel>()
 
     companion object {
-        val boardLiveData = MutableLiveData<BoardViewModel>()
-        val selectedPieceViewModel = MutableLiveData<PieceViewModel>(null)
+        val selectedSpot = MutableLiveData<Pair<Position,PieceViewModel>>(null)
     }
 
 
@@ -22,9 +22,22 @@ class GameViewModel : ViewModel() {
 
     fun onPieceClicked(position: Position) {
         boardLiveData.value?.let {
-            boardLiveData.postValue(
-                it.copy(highlightedPositions = gameEngine.getHighlightedPositions(position))
-            )
+            val selectedSquare = selectedSpot.value
+            val selectedPiecePosition = selectedSquare?.first
+            if (selectedPiecePosition != null) {
+                val selectedPiece = selectedSquare.second
+                gameEngine.tryMove(selectedPiece, selectedPiecePosition, position)
+                boardLiveData.postValue(
+                        it.copy(
+                                pieces = gameEngine.getBoardState(),
+                                highlightedPositions = emptyList()
+                        )
+                )
+            } else {
+                boardLiveData.postValue(
+                        it.copy(highlightedPositions = gameEngine.getHighlightedPositions(position))
+                )
+            }
         }
     }
 }

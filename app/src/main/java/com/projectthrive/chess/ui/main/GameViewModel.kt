@@ -6,7 +6,12 @@ import androidx.lifecycle.ViewModel
 class GameViewModel : ViewModel() {
 
     private val gameEngine: GameEngine
-    val boardLiveData = MutableLiveData<BoardViewModel>()
+
+    companion object {
+        val boardLiveData = MutableLiveData<BoardViewModel>()
+        val selectedPieceViewModel = MutableLiveData<PieceViewModel>(null)
+    }
+
 
     init {
         gameEngine = GameEngine()

@@ -11,24 +11,46 @@ class PieceMovementRules {
             val validMoves = mutableListOf<Position>()
             if (pieceColor == PieceColor.WHITE){
                 when {
-                    boardState[Position(position.x + 1, position.y)] != null -> return emptyList()
                     boardState[Position(position.x + 2, position.y)] != null -> {
                         validMoves.add(Position(position.x + 1, position.y))
                     }
-                    else -> {
+                    boardState[Position(position.x + 1, position.y)] == null -> {
                         validMoves.add(Position(position.x + 1, position.y))
                         validMoves.add(Position(position.x + 2, position.y))
                     }
                 }
+
+                boardState[Position(position.x + 1, position.y + 1)]?.let {
+                    if (it.color != pieceColor) {
+                        validMoves.add(Position(position.x + 1, position.y + 1))
+                    }
+                }
+
+                boardState[Position(position.x + 1, position.y - 1)]?.let {
+                    if (it.color != pieceColor) {
+                        validMoves.add(Position(position.x + 1, position.y - 1))
+                    }
+                }
             } else {
                 when {
-                    boardState[Position(position.x - 1, position.y)] != null -> return emptyList()
                     boardState[Position(position.x - 2, position.y)] != null -> {
                         validMoves.add(Position(position.x - 1, position.y))
                     }
-                    else -> {
+                    boardState[Position(position.x - 1, position.y)] == null -> {
                         validMoves.add(Position(position.x - 1, position.y))
                         validMoves.add(Position(position.x - 2, position.y))
+                    }
+                }
+
+                boardState[Position(position.x - 1, position.y - 1)]?.let {
+                    if (it.color != pieceColor) {
+                        validMoves.add(Position(position.x - 1, position.y - 1))
+                    }
+                }
+
+                boardState[Position(position.x - 1, position.y + 1)]?.let {
+                    if (it.color != pieceColor) {
+                        validMoves.add(Position(position.x - 1, position.y + 1))
                     }
                 }
             }

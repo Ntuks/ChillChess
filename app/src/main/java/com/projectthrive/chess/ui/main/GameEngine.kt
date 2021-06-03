@@ -4,14 +4,16 @@ import com.projectthrive.chess.ui.main.GameViewModel.Companion.selectedSpot
 
 class GameEngine {
     private val boardState = mutableMapOf<Position, PieceViewModel>()
+    private val pieceMovementRules: PieceMovementRules = PieceMovementRules()
 
     init {
         boardState.putAll(initialPiecesSetup())
+        pieceMovementRules.initialPawnsPositions.addAll(boardState.filter { it.value.pieceType == PieceType.PAWN }.keys)
     }
 
     fun initialPieces() = boardState.toMap()
 
-    fun getBoardState() = boardState
+    fun getBoardState() = boardState.toMap()
 
     fun getHighlightedPositions(position: Position): List<Position> {
         if (boardState[position] == null) {
@@ -23,7 +25,7 @@ class GameEngine {
         selectedSpot.postValue(Pair(position, piece))
         return when(piece.pieceType) {
             PieceType.PAWN -> {
-                PieceMovementRules.pawnAvailableMovement(boardState, position, piece.color)
+                pieceMovementRules.pawnAvailableMovement(boardState, position, piece.color)
             }
             else -> {
                 listOf(position.copy(x = position.x + 1))
@@ -34,7 +36,7 @@ class GameEngine {
     fun tryMove(pieceViewModel: PieceViewModel, from: Position, to: Position) {
         when(pieceViewModel.pieceType) {
             PieceType.PAWN -> {
-                val validMoves = PieceMovementRules.pawnAvailableMovement(
+                val validMoves = pieceMovementRules.pawnAvailableMovement(
                         boardState,
                         from,
                         pieceViewModel.color
@@ -44,7 +46,7 @@ class GameEngine {
                     boardState.remove(from)
                     boardState[to] = pieceViewModel
                     selectedSpot.postValue(null)
-                 } else {
+                } else {
                     selectedSpot.postValue(null)
                 }
             }

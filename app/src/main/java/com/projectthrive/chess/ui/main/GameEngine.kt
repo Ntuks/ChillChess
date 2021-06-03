@@ -2,9 +2,11 @@ package com.projectthrive.chess.ui.main
 
 class GameEngine {
     private val boardState = mutableMapOf<Position, PieceViewModel>()
+    private val pieceMovementRules: PieceMovementRules = PieceMovementRules()
 
     init {
         boardState.putAll(initialPiecesSetup())
+        pieceMovementRules.initialPawnsPositions.addAll(boardState.filter { it.value.pieceType == PieceType.PAWN }.keys)
     }
 
     fun initialPieces() = boardState.toMap()
@@ -14,7 +16,36 @@ class GameEngine {
             return emptyList()
         }
 
-        return listOf(position.copy(x = position.x + 1))
+        val piece: PieceViewModel = boardState[position] as PieceViewModel
+        return when(piece.pieceType) {
+            PieceType.PAWN -> {
+                pieceMovementRules.pawnAvailableMovement(boardState, position, piece.color)
+            }
+            else -> {
+                listOf(position.copy(x = position.x + 1))
+            }
+        }
+    }
+
+    fun tryMove(from: Position, to: Position) : Map<Position, PieceViewModel>  {
+        val pieceViewModel = boardState[from]
+
+        when (pieceViewModel?.pieceType) {
+            PieceType.PAWN -> {
+                val validMoves = pieceMovementRules.pawnAvailableMovement(
+                    boardState,
+                    from,
+                    pieceViewModel.color
+                ).toSet()
+
+                if (validMoves.contains(to)) {
+                    boardState.remove(from)
+                    boardState[to] = pieceViewModel
+                }
+            }
+        }
+
+        return boardState.toMap()
     }
 
     private fun initialPiecesSetup(): Map<Position, PieceViewModel> {

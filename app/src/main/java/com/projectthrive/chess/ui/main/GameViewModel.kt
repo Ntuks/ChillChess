@@ -7,6 +7,7 @@ class GameViewModel : ViewModel() {
 
     private val gameEngine: GameEngine
     val boardLiveData = MutableLiveData<BoardViewModel>()
+    var selectedTile: Position? = null
 
     init {
         gameEngine = GameEngine()
@@ -17,10 +18,40 @@ class GameViewModel : ViewModel() {
 
     fun onPieceClicked(position: Position) {
         boardLiveData.value?.let {
-            boardLiveData.postValue(
-                it.copy(highlightedPositions = gameEngine.getHighlightedPositions(position))
-            )
+            val currentSelectedTile = selectedTile
+
+            if (currentSelectedTile != null) {
+                tryToMovePiece(it, currentSelectedTile, position)
+            } else {
+                getHighlightedPosition(it, position)
+            }
         }
+    }
+
+    private fun tryToMovePiece(
+        boardViewModel: BoardViewModel,
+        currentSelectedTile : Position,
+        position: Position
+    ) {
+        val pieces = gameEngine.tryMove(currentSelectedTile, position)
+        selectedTile = null
+
+        boardLiveData.postValue(
+            boardViewModel.copy(
+                pieces = pieces,
+                highlightedPositions = emptyList()
+            )
+        )
+    }
+
+    private fun getHighlightedPosition(
+        it: BoardViewModel,
+        position: Position
+    ) {
+        selectedTile = position
+        boardLiveData.postValue(
+            it.copy(highlightedPositions = gameEngine.getHighlightedPositions(position))
+        )
     }
 }
 

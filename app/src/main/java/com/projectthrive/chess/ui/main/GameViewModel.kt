@@ -7,11 +7,7 @@ class GameViewModel : ViewModel() {
 
     private val gameEngine: GameEngine
     val boardLiveData = MutableLiveData<BoardViewModel>()
-
-    companion object {
-        val selectedSpot = MutableLiveData<Pair<Position,PieceViewModel>>(null)
-    }
-
+    var selectedTile: Position? = null
 
     init {
         gameEngine = GameEngine()
@@ -22,23 +18,40 @@ class GameViewModel : ViewModel() {
 
     fun onPieceClicked(position: Position) {
         boardLiveData.value?.let {
-            val selectedSquare = selectedSpot.value
-            val selectedPiecePosition = selectedSquare?.first
-            if (selectedPiecePosition != null) {
-                val selectedPiece = selectedSquare.second
-                gameEngine.tryMove(selectedPiece, selectedPiecePosition, position)
-                boardLiveData.postValue(
-                        it.copy(
-                                pieces = gameEngine.getBoardState(),
-                                highlightedPositions = emptyList()
-                        )
-                )
+            val currentSelectedTile = selectedTile
+
+            if (currentSelectedTile != null) {
+                tryToMovePiece(it, currentSelectedTile, position)
             } else {
-                boardLiveData.postValue(
-                        it.copy(highlightedPositions = gameEngine.getHighlightedPositions(position))
-                )
+                getHighlightedPosition(it, position)
             }
         }
+    }
+
+    private fun tryToMovePiece(
+        boardViewModel: BoardViewModel,
+        currentSelectedTile : Position,
+        position: Position
+    ) {
+        val pieces = gameEngine.tryMove(currentSelectedTile, position)
+        selectedTile = null
+
+        boardLiveData.postValue(
+            boardViewModel.copy(
+                pieces = pieces,
+                highlightedPositions = emptyList()
+            )
+        )
+    }
+
+    private fun getHighlightedPosition(
+        it: BoardViewModel,
+        position: Position
+    ) {
+        selectedTile = position
+        boardLiveData.postValue(
+            it.copy(highlightedPositions = gameEngine.getHighlightedPositions(position))
+        )
     }
 }
 
